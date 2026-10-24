@@ -176,43 +176,53 @@ def parse_library(text):
     return ads
 
 
-def fetch_ads():
+def fetch_ads(queries):
+    """Legge la Libreria inserzioni senza login: una ricerca per il dominio e una per ogni landing,
+    perche' senza login Facebook mostra solo le prime ~30 ads di ogni ricerca."""
     from playwright.sync_api import sync_playwright
-    url = ("https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL"
-           "&media_type=all&search_type=keyword_unordered&q=" + DOMAIN)
-    text = ""
+    ads = {}
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True)
-        page = b.new_context(locale="it-IT", user_agent=UA["User-Agent"],
-                             viewport={"width": 1366, "height": 900}).new_page()
-        try:
-            page.goto(url, wait_until="domcontentloaded", timeout=90000)
-            page.wait_for_timeout(6000)
-            for label in ("Rifiuta cookie facoltativi", "Decline optional cookies",
-                          "Consenti solo i cookie essenziali", "Only allow essential cookies"):
-                btn = page.get_by_role("button", name=label)
-                if btn.count():
-                    btn.first.click()
+        ctx = b.new_context(locale="it-IT", user_agent=UA["User-Agent"], viewport={"width": 1366, "height": 900})
+        page = ctx.new_page()
+        cookies_done = False
+        for qi, q in enumerate(queries):
+            url = ("https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL"
+                   "&media_type=all&search_type=keyword_unordered&q=" + q)
+            try:
+                page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                page.wait_for_timeout(4000)
+                if not cookies_done:
+                    for label in ("Rifiuta cookie facoltativi", "Decline optional cookies",
+                                  "Consenti solo i cookie essenziali", "Only allow essential cookies"):
+                        btn = page.get_by_role("button", name=label)
+                        if btn.count():
+                            btn.first.click()
+                            page.wait_for_timeout(1500)
+                            break
+                    cookies_done = True
+                last, same = -1, 0
+                for _ in range(40):
+                    page.mouse.wheel(0, 20000)
                     page.wait_for_timeout(1500)
-                    break
-            last, same = -1, 0
-            for _ in range(150):
-                page.mouse.wheel(0, 20000)
-                page.wait_for_timeout(1800)
-                n = page.evaluate("(document.body.innerText.match(/ID libreria:|Library ID:/g)||[]).length")
-                if n == last:
-                    same += 1
-                    if same >= 5:
-                        break
-                else:
-                    last, same = n, 0
-            text = page.evaluate("document.body.innerText")
-        except Exception as e:
-            log("Libreria non leggibile:", e)
-        finally:
-            b.close()
-    ads = parse_library(text)
-    log(len(ads), "ads lette")
+                    n = page.evaluate("(document.body.innerText.match(/ID libreria:|Library ID:/g)||[]).length")
+                    if n == last:
+                        same += 1
+                        if same >= 3:
+                            break
+                    else:
+                        last, same = n, 0
+                found = parse_library(page.evaluate("document.body.innerText"))
+                new = 0
+                for k, a in found.items():
+                    if k not in ads or (ads[k]["product"] in (None, "?") and a["product"] not in (None, "?")):
+                        new += k not in ads
+                        ads[k] = a
+                log("ricerca", qi + 1, "/", len(queries), q, "->", len(found), "ads,", new, "nuove")
+            except Exception as e:
+                log("ricerca fallita", q, e)
+        b.close()
+    log(len(ads), "ads totali lette")
     return ads or None
 
 
@@ -290,7 +300,8 @@ def main():
             landings[s] = scan(s)
             time.sleep(0.3)
     try:
-        ads = fetch_ads()
+        queries = [DOMAIN] + [full(s) for s in sorted(subs) if classify(s) == "Landing" and landings.get(s, {}).get("status") == 200]
+        ads = fetch_ads(queries)
     except Exception as e:
         log("ads non disponibili:", e)
         ads = None
