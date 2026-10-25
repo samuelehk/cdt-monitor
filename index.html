@@ -118,6 +118,29 @@ td.bar .b { display:inline-block; height:8px; border-radius:999px; background:va
 .phases { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:10px; margin-top:12px; }
 .phases div { background:var(--soft); border-radius:10px; padding:12px 14px; border-left:3px solid var(--pc); font-size:14px; }
 .phases .w { color:var(--pc); font-weight:700; font-size:12.5px; }
+/* oggi */
+.daychips { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.daychips .lbl { color:var(--muted); font-size:13px; margin-right:4px; }
+.verdict { font:400 clamp(22px,2.6vw,30px)/1.3 var(--serif); margin:0; }
+.verdict b { color:var(--c0); font-weight:500; }
+.sub { color:var(--muted); font-size:13.5px; margin-top:6px; }
+.cols3 { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%,300px),1fr)); gap:14px; }
+.col { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; border-top:4px solid var(--pc); display:grid; gap:10px; align-content:start; }
+.col h3 { margin:0; font:600 15px var(--sans); display:flex; justify-content:space-between; align-items:center; }
+.col h3 .big { font:400 30px var(--serif); color:var(--pc); }
+.col .hint { color:var(--muted); font-size:12.5px; margin:-4px 0 2px; }
+.mini { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 12px; border-radius:10px; background:var(--soft); text-decoration:none; }
+.mini:hover { outline:1px solid var(--pc); }
+.mini .t { display:grid; gap:2px; min-width:0; }
+.mini .t b { font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mini .t span { font-size:12px; color:var(--muted); }
+.mini .v { font:500 18px var(--serif); color:var(--pc); white-space:nowrap; }
+.empty2 { color:var(--muted); font-size:13.5px; padding:6px 2px; }
+.delta { font-weight:700; } .delta.up { color:var(--ok); } .delta.down { color:var(--c3); } .delta.re { color:var(--c2); } .delta.z { color:var(--muted); font-weight:400; }
+details.tech { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; }
+details.tech summary { cursor:pointer; font-weight:600; }
+details.tech ul { margin:10px 0 0; padding-left:18px; font-size:13.5px; display:grid; gap:4px; }
+.setup { background:color-mix(in srgb, var(--c2) 12%, transparent); border:1px solid color-mix(in srgb, var(--c2) 35%, transparent); border-radius:var(--radius); padding:12px 16px; font-size:14px; }
 /* gantt + funnel */
 .gantt { position:relative; overflow-x:auto; }
 .tip { position:fixed; z-index:20; pointer-events:none; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:12.5px; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,.18); line-height:1.45; }
@@ -142,19 +165,17 @@ td.bar .b { display:inline-block; height:8px; border-radius:999px; background:va
   <section class="tiles" id="tiles"></section>
 
   <nav class="tabs" role="tablist" id="tabs">
-    <button role="tab" data-p="novita" aria-selected="true">Novità del giorno</button>
-    <button role="tab" data-p="analisi" aria-selected="false">Analisi completa</button>
-    <button role="tab" data-p="prodotti" aria-selected="false">Prodotti e ads</button>
+    <button role="tab" data-p="novita" aria-selected="true">Oggi</button>
+    <button role="tab" data-p="prodotti" aria-selected="false">Prodotti</button>
     <button role="tab" data-p="timeline" aria-selected="false">Timeline</button>
     <button role="tab" data-p="sottodomini" aria-selected="false">Sottodomini</button>
     <button role="tab" data-p="funnel" aria-selected="false">Funnel</button>
+    <button role="tab" data-p="analisi" aria-selected="false">Analisi</button>
   </nav>
 
   <section class="page" id="novita">
-    <div class="daygrid">
-      <ul class="days" id="days"></ul>
-      <div class="card report" id="report"><h3>Nessun controllo ancora</h3><p class="note">Il bot gira ogni mattina alle 8:00 (ora di Malta).</p></div>
-    </div>
+    <div class="daychips" id="days"></div>
+    <div id="report"></div>
   </section>
 
   <section class="page" id="analisi" hidden>
@@ -291,56 +312,90 @@ function merge() {
 function kpis() {
   var ads = 0, act = 0, pages = {}, live = 0;
   ROWS.forEach(function (r) { ads += r.ads; act += r.active; r.pages.forEach(function (p) { pages[p] = 1; }); if (r.active) live++; });
-  var T = [['Sottodomini', SUBS.length, 'c1', 'nuovi in ‘Novità’'], ['Prodotti con ads', ROWS.length, 'c4', 'storico dal dic 2025'], ['Ads totali viste', ads, 'c2', 'attive + spente'], ['Ads attive ora', act, 'c0', live + ' prodotti in ads'], ['Pagine Facebook', Object.keys(pages).length, 'c3', 'una per nicchia']];
+  var last = H.length ? H[H.length - 1] : null, nc = last && last.changes ? last.changes : {};
+  function n(k) { return nc[k] ? nc[k].count : 0; }
+  var T = [['Ads attive ora', act, 'c0', 'su ' + live + ' prodotti'], ['Ads accese nell’ultimo controllo', n('ads_nuove') + n('ads_riaccese'), 'c2', n('ads_spente') + ' spente'], ['Prodotti con ads', ROWS.length, 'c4', 'dal dicembre 2025'], ['Sottodomini', SUBS.length, 'c1', n('nuovi_sottodomini') + ' nuovi nell’ultimo controllo'], ['Pagine Facebook', Object.keys(pages).length, 'c3', ads + ' ads viste in totale']];
   $('#tiles').replaceChildren.apply($('#tiles'), T.map(function (t) { return h('div', { class: 'tile', style: '--a:var(--' + t[2] + ')' }, h('div', { class: 'l' }, t[0]), h('div', { class: 'n' }, String(t[1])), h('div', { class: 's' }, t[3])); }));
   var oct = ROWS.filter(function (r) { return r.first >= '2026-10-01'; }).length;
   $('#take').replaceChildren(h('b', {}, String(oct)), ' dei ' + ROWS.length + ' prodotti con ads sono stati lanciati da metà ottobre e oggi girano ', h('b', {}, String(act)), ' ads su ', h('b', {}, String(live)), ' prodotti: si sono spostati in blocco su esami e concorsi internazionali.');
   if (L) $('#upd').textContent = 'Monitor attivo · ultimo controllo ' + fmt(L.date) + ' · prossimo domattina alle 8:00';
 }
 
-/* ---------- novità ---------- */
-function cnt(x) { var n = 0; for (var k in (x.changes || {})) n += x.changes[k].count; return n; }
+/* ---------- oggi ---------- */
+function cnt(x) { var n = 0; for (var k in (x.changes || {})) if (k !== 'landing_modificate') n += x.changes[k].count; return n; }
+function titleOf(s) { var r = ROWS.filter(function (x) { return x.sub === s; })[0]; return r ? r.title : (S.d[s] || s); }
+function mkOf(s) { var r = ROWS.filter(function (x) { return x.sub === s; })[0]; return (r && r.mk) || S.m[s] || ''; }
+function activeOf(s) { var r = ROWS.filter(function (x) { return x.sub === s; })[0]; return r ? r.active : 0; }
 function drawDays() {
-  var ul = $('#days'); ul.replaceChildren();
+  var box = $('#days'); box.replaceChildren(h('span', { class: 'lbl' }, 'Giorno:'));
   H.slice().reverse().forEach(function (x) {
     var n = cnt(x);
-    ul.append(h('li', {}, h('button', { 'aria-current': String(x.date === DAY), onclick: function () { DAY = x.date; drawDays(); drawReport(); } }, h('span', {}, fmt(x.date)), h('span', { class: 'c' }, x.baseline ? 'inizio' : n ? '+' + n : '—'))));
+    box.append(h('button', { class: 'chip', 'aria-pressed': String(x.date === DAY), onclick: function () { DAY = x.date; drawDays(); drawReport(); } },
+      fmt(x.date) + (x.baseline || x.date <= '2026-10-24' ? ' · avvio' : n ? ' · ' + n + ' novità' : ' · nessuna novità')));
   });
 }
-function headline(x) {
-  var c = x.changes || {}; function g(k) { return c[k] ? c[k].count : 0; }
-  if (x.baseline) return 'Fotografia di partenza salvata: da qui in avanti vedi solo le novità';
-  if (g('prodotti_nuovi_in_ads')) return 'Hanno messo in ads ' + (g('prodotti_nuovi_in_ads') === 1 ? 'un prodotto nuovo' : g('prodotti_nuovi_in_ads') + ' prodotti nuovi');
-  if (g('nuovi_sottodomini')) return (g('nuovi_sottodomini') === 1 ? 'Un sottodominio nuovo' : g('nuovi_sottodomini') + ' sottodomini nuovi') + ': stanno preparando un lancio';
-  if (g('ads_nuove')) return g('ads_nuove') + ' ads nuove' + (g('ads_spente') ? ' e ' + g('ads_spente') + ' spente' : '');
-  if (g('ads_spente')) return g('ads_spente') + ' ads spente';
-  if (cnt(x)) return 'Modifiche a landing e offerte';
-  return 'Nessuna novità rispetto al giorno prima';
+function perProduct(x) {
+  var P = {}, c = x.changes || {};
+  function g(s) { return P[s] = P[s] || { sub: s, nuove: 0, spente: 0, riaccese: 0, titles: {} }; }
+  [['ads_nuove', 'nuove'], ['ads_spente', 'spente'], ['ads_riaccese', 'riaccese']].forEach(function (p) {
+    ((c[p[0]] || {}).items || []).forEach(function (it) { if (!it.product || it.product === '?') return; var o = g(it.product); o[p[1]]++; o.titles[it.label] = 1; });
+  });
+  return Object.keys(P).map(function (k) { return P[k]; });
+}
+function mini(sub, line, val, href) {
+  return h('a', { class: 'mini', href: href || url(sub) }, h('span', { class: 't' }, h('b', {}, titleOf(sub)), h('span', {}, line)), h('span', { class: 'v' }, val));
+}
+function col(color, title, big, hint, items, empty) {
+  return h('div', { class: 'col', style: '--pc:var(--' + color + ')' }, h('h3', {}, title, h('span', { class: 'big' }, String(big))), h('div', { class: 'hint' }, hint),
+    items.length ? items : h('div', { class: 'empty2' }, empty));
 }
 function drawReport() {
   var box = $('#report'); box.replaceChildren();
   var x = H.filter(function (y) { return y.date === DAY; })[0];
-  if (!x) { box.append(h('h3', {}, 'Nessun controllo ancora'), h('p', { class: 'note' }, 'Il bot gira ogni mattina alle 8:00 (ora di Malta).')); return; }
-  box.append(h('h3', {}, headline(x)), h('div', { class: 'when' }, fmt(x.date) + (x.totals ? ' · ' + x.totals.attive + ' ads attive lette · ' + x.totals.subs + ' sottodomini' : '')));
-  var strip = h('div', { class: 'strip' }), f = h('div', { class: 'findings' });
-  Object.keys(LAB).forEach(function (k) {
-    var c = (x.changes || {})[k]; if (!c || !c.count) return;
-    strip.append(pill(c.count + ' · ' + LAB[k][0].replace(/^\S+ /, ''), LAB[k][1]));
-    var ul = h('ul');
-    c.items.forEach(function (it) {
-      var li = h('li');
-      if (it.id) li.append(h('a', { href: 'https://www.facebook.com/ads/library/?id=' + it.id }, it.label), ' ', h('small', {}, '[' + it.product + ']'));
-      else if (it.sub) li.append(h('a', { href: url(it.sub) }, it.label));
-      else li.append(it.label);
-      if (it.prices && it.prices.length) li.append(' ', h('small', {}, it.prices.join(' · ')));
-      ul.append(li);
+  if (!x) { box.append(h('div', { class: 'card' }, h('p', { class: 'verdict' }, 'Nessun controllo ancora.'), h('div', { class: 'sub' }, 'Il bot gira ogni mattina alle 8:00, ora di Malta.'))); return; }
+  var c = x.changes || {}, P = perProduct(x);
+  var launches = [];
+  ((c.prodotti_nuovi_in_ads || {}).items || []).forEach(function (it) { if (it.sub) launches.push({ sub: it.sub, why: 'Prime ads oggi' }); });
+  ((c.nuovi_sottodomini || {}).items || []).forEach(function (it) { if (it.sub && !launches.some(function (l) { return l.sub === it.sub; })) launches.push({ sub: it.sub, why: 'Nuovo sottodominio' + (it.prices && it.prices.length ? ' · ' + it.prices.slice(0, 3).join(' ') : '') }); });
+  var push = P.filter(function (p) { return p.nuove + p.riaccese > p.spente; }).sort(function (a, b) { return (b.nuove + b.riaccese - b.spente) - (a.nuove + a.riaccese - a.spente); });
+  var cut = P.filter(function (p) { return p.spente > p.nuove + p.riaccese; }).sort(function (a, b) { return (b.spente - b.nuove) - (a.spente - a.nuove); });
+  function names(arr) { return arr.slice(0, 3).map(function (p) { return titleOf(p.sub || p).replace(/ \d{4}.*$/, ''); }).join(', '); }
+  var verdict = h('p', { class: 'verdict' });
+  if (x.baseline) verdict.append('Primo controllo: ho salvato la fotografia di partenza.');
+  else if (!launches.length && !push.length && !cut.length) verdict.append('Giornata tranquilla: nessun lancio e nessun movimento importante sulle ads.');
+  else {
+    var parts = [];
+    if (launches.length) parts.push(['Nuovi lanci: ', names(launches)]);
+    if (push.length) parts.push(['stanno spingendo ', names(push)]);
+    if (cut.length) parts.push(['stanno tagliando ', names(cut)]);
+    parts.forEach(function (p, i) { if (i) verdict.append(i === parts.length - 1 ? ' e ' : ', '); verdict.append(i ? p[0] : p[0].charAt(0).toUpperCase() + p[0].slice(1), h('b', {}, p[1])); });
+    verdict.append('.');
+  }
+  var head = h('div', { class: 'card report' }, verdict, h('div', { class: 'sub' }, 'Controllo del ' + fmt(x.date) + ' · ' + (x.totals ? x.totals.attive + ' ads attive lette su ' + x.totals.ads + ' · ' + x.totals.subs + ' sottodomini' : '')));
+  box.append(head);
+  if (!x.baseline && x.date <= '2026-10-24') box.append(h('div', { class: 'setup' }, h('b', {}, 'Giorno di avvio. '), 'I numeri di questo giorno confrontano la prima lettura (parziale) con la seconda (completa): non sono vere novità del competitor. Le novità affidabili partono dal giorno dopo.'));
+  var nets = function (p) { return [p.nuove ? '+' + p.nuove + ' nuove' : '', p.riaccese ? p.riaccese + ' riaccese' : '', p.spente ? p.spente + ' spente' : ''].filter(Boolean).join(' · '); };
+  box.append(h('div', { class: 'cols3' },
+    col('c3', '🚀 Lanci', launches.length, 'Prodotti o pagine nuove apparse oggi', launches.slice(0, 8).map(function (l) { return mini(l.sub, (mkOf(l.sub) ? mkOf(l.sub) + ' · ' : '') + l.why, 'apri ↗'); }), 'Nessun lancio nuovo.'),
+    col('c0', '📈 Stanno spingendo', push.length, 'Prodotti con più ads accese che spente: lì stanno investendo', push.slice(0, 8).map(function (p) { return mini(p.sub, nets(p) + ' · ' + activeOf(p.sub) + ' attive ora', '+' + (p.nuove + p.riaccese - p.spente), lib(p.sub)); }), 'Nessun prodotto in crescita oggi.'),
+    col('c7', '📉 Stanno tagliando', cut.length, 'Prodotti con più ads spente che accese: probabilmente non rendono', cut.slice(0, 8).map(function (p) { return mini(p.sub, nets(p) + ' · ' + activeOf(p.sub) + ' attive ora', '−' + (p.spente - p.nuove - p.riaccese), lib(p.sub)); }), 'Nessun taglio oggi.')));
+  if (P.length) {
+    var t = h('table'), tb = h('tbody');
+    t.append(h('thead', {}, h('tr', {}, ['Prodotto', 'Mercato', 'Nuove', 'Riaccese', 'Spente', 'Attive ora', ''].map(function (x) { return h('th', {}, x); }))), tb);
+    P.sort(function (a, b) { return (b.nuove + b.riaccese - b.spente) - (a.nuove + a.riaccese - a.spente); }).forEach(function (p) {
+      tb.append(h('tr', { onclick: function () { SEL = p.sub; show('prodotti'); } },
+        h('td', {}, h('b', {}, titleOf(p.sub)), h('div', { class: 'note', style: 'margin:0' }, host(p.sub))), h('td', {}, mkOf(p.sub) ? pill(mkOf(p.sub), MK[mkOf(p.sub)]) : ''),
+        h('td', {}, h('span', { class: 'delta ' + (p.nuove ? 'up' : 'z') }, p.nuove ? '+' + p.nuove : '0')), h('td', {}, h('span', { class: 'delta ' + (p.riaccese ? 're' : 'z') }, String(p.riaccese))),
+        h('td', {}, h('span', { class: 'delta ' + (p.spente ? 'down' : 'z') }, p.spente ? '−' + p.spente : '0')), h('td', { class: 'n' }, String(activeOf(p.sub))),
+        h('td', {}, h('a', { class: 'btn', href: lib(p.sub) }, 'Vedi ads ↗'))));
     });
-    if (c.count > c.items.length) ul.append(h('li', {}, h('small', {}, '…e altri ' + (c.count - c.items.length))));
-    f.append(h('div', { class: 'finding', style: '--pc:var(--c' + LAB[k][1] + ')' }, h('h4', {}, LAB[k][0] + ' (' + c.count + ')'), ul));
-  });
-  if (strip.children.length) box.append(strip);
-  box.append(f);
-  if (x.analysis) box.append(h('div', { class: 'warnbox' }, x.analysis));
+    box.append(h('div', { class: 'card' }, h('h2', {}, h('span', { class: 'ico', style: '--a:var(--c1)' }, '📊'), 'Movimenti delle ads per prodotto'), h('p', { class: 'note' }, 'Clicca un prodotto per aprirne la scheda completa.'), h('div', { class: 'tbox' }, t)));
+  }
+  var tech = [['prezzi_cambiati', 'Prezzi cambiati'], ['checkout_cambiati', 'Checkout cambiati'], ['titoli_cambiati', 'Titoli cambiati'], ['landing_offline', 'Landing offline'], ['sottodomini_spariti', 'Sottodomini spariti'], ['pagine_fb_nuove', 'Nuove pagine Facebook'], ['landing_modificate', 'Landing modificate (anche piccoli ritocchi)']];
+  var tl = [];
+  tech.forEach(function (k) { var cc = c[k[0]]; if (cc && cc.count) tl.push(h('li', {}, h('b', {}, k[1] + ' (' + cc.count + '): '), cc.items.slice(0, 20).map(function (it, i) { return [i ? ', ' : '', it.sub ? h('a', { href: url(it.sub) }, it.label) : it.label]; }))); });
+  if (tl.length) box.append(h('details', { class: 'tech' }, h('summary', {}, 'Dettagli tecnici: landing, prezzi, checkout (' + tl.length + ')'), h('ul', {}, tl)));
+  if (x.analysis) box.append(h('div', { class: 'setup' }, x.analysis));
 }
 
 /* ---------- tabelle ---------- */
