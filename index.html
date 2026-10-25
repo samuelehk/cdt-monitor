@@ -285,7 +285,7 @@ details.tech ul { margin:10px 0 0; padding-left:18px; font-size:13.5px; display:
       <li><span class="pill" style="--pc:var(--c2)">Upsell/downsell</span> pagine dopo l’acquisto (nomi che finiscono con 101, 17, 85…): <b>101</b> = upsell, <b>17</b> = downsell.</li>
       <li><span class="pill" style="--pc:var(--c5)">Thank-you page</span> pagina di ringraziamento in una lingua: dice in quali mercati vendono.</li>
       <li><span class="pill" style="--pc:var(--c7)">Infrastruttura/test</span> sistemi interni (automazioni, storage, pannello, test del builder di landing).</li></ul>
-      <div>“Certificato” = data in cui la pagina è stata messa online (o rinnovata). “Cos’è”: le descrizioni con “(dal nome)” sono deduzioni.</div></div>
+      <div>“Prezzo” = solo i prezzi di vendita veri della landing (di solito Base e Pack Completo), senza prezzo barrato, “risparmi” e valore dei bonus. “Certificato” = data in cui la pagina è stata messa online (o rinnovata). Le descrizioni con “(dal nome)” sono deduzioni.</div></div>
     <div class="card"><h2><span class="ico" style="--a:var(--c4)">🌐</span>Tutti i sottodomini di cantinhodetudo.online</h2>
       <p class="note">Dai certificati SSL e dal DNS, aggiornati ogni mattina. Clicca un nome per aprire il sito.</p>
       <div class="tools"><input id="qs" type="search" placeholder="Cerca sottodominio, descrizione, prezzo…"></div>
@@ -350,7 +350,7 @@ function merge() {
   ROWS = Object.keys(map).map(function (k) { return map[k]; });
   var subs = L ? L.subdomains : Object.keys(S.d).map(function (k) { return { sub: k, type: classify(k), cert: '', title: '', prices: [], hotmart: [], http: '' }; });
   var withAds = {}; ROWS.forEach(function (r) { withAds[r.sub] = 1; });
-  SUBS = subs.map(function (s) { return { sub: s.sub, type: withAds[s.sub] ? 'Landing con ads' : s.type, mk: S.m[s.sub] || '', cert: s.cert, desc: S.d[s.sub] || s.title || '', prices: (s.prices || []).join(' '), http: s.http }; });
+  SUBS = subs.map(function (s) { return { sub: s.sub, type: withAds[s.sub] ? 'Landing con ads' : s.type, mk: S.m[s.sub] || '', cert: s.cert, desc: S.d[s.sub] || s.title || '', prices: (s.real || []).join(' / '), http: s.http }; });
 }
 
 function kpis() {
@@ -510,7 +510,7 @@ function drawDetail() {
     h('h2', {}, r.title || r.sub, ' ', h('span', { class: 'note', style: 'margin:0' }, host(r.sub))),
     h('div', { class: 'kv' },
       h('div', {}, h('span', {}, 'Ads totali'), h('b', {}, String(r.ads))), h('div', {}, h('span', {}, 'Attive ora'), h('b', {}, String(r.active))),
-      h('div', {}, h('span', {}, 'Creatività'), h('b', {}, String(r.cre || '—'))), h('div', {}, h('span', {}, 'Mercato'), h('b', {}, r.mk || '—')),
+      h('div', {}, h('span', {}, 'Prezzo (Base / Completo)'), h('b', {}, (SUBS.filter(function (s) { return s.sub === r.sub; })[0] || {}).prices || '—')), h('div', {}, h('span', {}, 'Mercato'), h('b', {}, r.mk || '—')),
       h('div', {}, h('span', {}, 'Periodo ads'), h('b', { style: 'font-size:15px' }, fmt(r.first) + ' → ' + (r.last ? fmt(r.last) : 'in corso'))),
       h('div', {}, h('span', {}, 'Pagina Facebook'), h('b', { style: 'font-size:15px' }, r.pages.join(', ')))),
     S.d[r.sub] ? h('p', { class: 'note', style: 'margin:0' }, S.d[r.sub]) : null,
@@ -535,7 +535,7 @@ function drawSubs() {
   chips('#fs', types, st.s);
   var q = $('#qs').value.toLowerCase();
   var rows = SUBS.filter(function (s) { return (st.s.f === 'Tutti' || s.type === st.s.f) && (!q || JSON.stringify(s).toLowerCase().indexOf(q) >= 0); });
-  table('#ts', [['sub', 'Sottodominio'], ['type', 'Tipo'], ['mk', 'Mercato'], ['cert', 'Certificato'], ['desc', 'Cos’è'], ['prices', 'Prezzi in pagina']], rows, st.s, function (s, k) {
+  table('#ts', [['sub', 'Sottodominio'], ['type', 'Tipo'], ['mk', 'Mercato'], ['cert', 'Certificato'], ['desc', 'Cos’è'], ['prices', 'Prezzo (Base / Completo)']], rows, st.s, function (s, k) {
     if (k === 'sub') return h('td', {}, h('a', { href: url(s.sub) }, h('b', {}, s.sub)));
     if (k === 'type') return h('td', {}, pill(s.type, TK[s.type]));
     if (k === 'mk') return h('td', {}, s.mk ? pill(s.mk, MK[s.mk]) : '');
