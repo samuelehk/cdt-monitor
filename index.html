@@ -141,6 +141,18 @@ details.tech { background:var(--panel); border:1px solid var(--line); border-rad
 details.tech summary { cursor:pointer; font-weight:600; }
 details.tech ul { margin:10px 0 0; padding-left:18px; font-size:13.5px; display:grid; gap:4px; }
 .setup { background:color-mix(in srgb, var(--c2) 12%, transparent); border:1px solid color-mix(in srgb, var(--c2) 35%, transparent); border-radius:var(--radius); padding:12px 16px; font-size:14px; }
+/* aiuto e legende */
+.help { display:grid; gap:6px; background:color-mix(in srgb, var(--c1) 8%, var(--panel)); border:1px solid color-mix(in srgb, var(--c1) 25%, var(--line)); border-radius:var(--radius); padding:14px 18px; font-size:14px; line-height:1.55; }
+.help > b { font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--c1); }
+.help ul { margin:0; padding-left:18px; display:grid; gap:4px; }
+.lg { display:inline-flex; align-items:center; gap:6px; margin-right:12px; }
+.lg .dia { width:10px; height:10px; background:var(--c4); transform:rotate(45deg); display:inline-block; }
+.lg .bar { width:22px; height:8px; border-radius:999px; display:inline-block; }
+.lg .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+.sig { font-size:11.5px; font-weight:700; padding:1px 8px; border-radius:999px; white-space:nowrap; }
+.sig.s3 { background:color-mix(in srgb, var(--ok) 18%, transparent); color:var(--ok); }
+.sig.s2 { background:color-mix(in srgb, var(--c2) 18%, transparent); color:var(--c2); }
+.sig.s1 { background:color-mix(in srgb, var(--c7) 18%, transparent); color:var(--c7); }
 /* gantt + funnel */
 .gantt { position:relative; overflow-x:auto; }
 .tip { position:fixed; z-index:20; pointer-events:none; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:12.5px; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,.18); line-height:1.45; }
@@ -165,20 +177,38 @@ details.tech ul { margin:10px 0 0; padding-left:18px; font-size:13.5px; display:
   <section class="tiles" id="tiles"></section>
 
   <nav class="tabs" role="tablist" id="tabs">
-    <button role="tab" data-p="novita" aria-selected="true">Oggi</button>
-    <button role="tab" data-p="prodotti" aria-selected="false">Prodotti</button>
-    <button role="tab" data-p="timeline" aria-selected="false">Timeline</button>
-    <button role="tab" data-p="sottodomini" aria-selected="false">Sottodomini</button>
-    <button role="tab" data-p="funnel" aria-selected="false">Funnel</button>
-    <button role="tab" data-p="analisi" aria-selected="false">Analisi</button>
+    <button role="tab" data-p="novita" aria-selected="true">📅 Oggi</button>
+    <button role="tab" data-p="testare" aria-selected="false">🎯 Cosa testare</button>
+    <button role="tab" data-p="prodotti" aria-selected="false">📦 Prodotti</button>
+    <button role="tab" data-p="timeline" aria-selected="false">🗓️ Timeline</button>
+    <button role="tab" data-p="sottodomini" aria-selected="false">🌐 Sottodomini</button>
+    <button role="tab" data-p="analisi" aria-selected="false">🔬 Analisi e funnel</button>
   </nav>
 
   <section class="page" id="novita">
+    <div class="help"><b>Cosa trovi qui</b>
+      <div>Ogni mattina alle 8 il bot confronta il competitor con il giorno prima. Qui vedi <b>solo cosa è cambiato</b>, in tre colonne:</div>
+      <ul><li><b>🚀 Lanci</b>: prodotti nuovi in ads, o pagine nuove appena messe online.</li>
+      <li><b>📈 Stanno spingendo</b>: prodotti dove hanno acceso più ads di quante ne abbiano spente → ci stanno mettendo soldi, quindi probabilmente vende.</li>
+      <li><b>📉 Stanno tagliando</b>: prodotti dove hanno spento più ads di quante ne abbiano accese → probabilmente non rende.</li></ul>
+      <div>Con i bottoni “Giorno” rivedi i controlli precedenti. Le idee concrete di test sono nella scheda <b>🎯 Cosa testare</b>.</div></div>
     <div class="daychips" id="days"></div>
     <div id="report"></div>
   </section>
 
+  <section class="page" id="testare" hidden>
+    <div class="help"><b>Come usare questa pagina</b>
+      <div>Trasforma i loro dati in idee di test per te, dal segnale più forte al più debole:</div>
+      <ul><li><span class="sig s3">Segnale forte</span> ads ancora accese dopo almeno 5 giorni: se non vendesse le avrebbero già spente. <b>Sono le nicchie da testare per prime.</b></li>
+      <li><span class="sig s2">Da osservare</span> lanciati da meno di 5 giorni: non si sa ancora se funzionano, ricontrolla tra qualche giorno.</li>
+      <li><span class="sig s2">Ha funzionato</span> ads accese per più di 3 settimane e poi spente: nicchia valida, forse legata a una data d’esame o stagionale.</li>
+      <li><span class="sig s1">Probabile flop</span> accesi e spenti entro una settimana: il loro test non è andato.</li>
+      <li><span class="sig s1">Nel cassetto</span> pagine pronte ma mai pubblicizzate: idee che stanno preparando, utili per anticiparli.</li></ul></div>
+    <div id="testgrid" class="cols3"></div>
+  </section>
+
   <section class="page" id="analisi" hidden>
+    <div class="help"><b>Cosa trovi qui</b><div>L’analisi completa del competitor (chi è, come lavora, come vende) e, in fondo, il loro funnel con i prezzi. È la parte “fissa”: le novità quotidiane sono in <b>📅 Oggi</b>, le idee di test in <b>🎯 Cosa testare</b>.</div></div>
     <div class="prose">
       <div class="card wide" style="--a:var(--c0)"><h2><span class="ico">⚡</span>In sintesi</h2>
         <p>Cantinho de Tudo è una <b>fabbrica di infoprodotti a basso prezzo</b>. Prende un unico format, “100 mappe visive” in PDF, e lo clona su decine di nicchie e lingue, con lo stesso funnel su Hotmart (landing → upsell → downsell) e una pagina Facebook per ogni nicchia. Al 24 ottobre giravano 108 ads su 8 prodotti, tutti esami e concorsi lanciati da metà ottobre.</p></div>
@@ -222,6 +252,10 @@ details.tech ul { margin:10px 0 0; padding-left:18px; font-size:13.5px; display:
   </section>
 
   <section class="page" id="prodotti" hidden>
+    <div class="help"><b>Come leggere</b>
+      <ul><li>Ogni riga è <b>un prodotto</b> che ha avuto ads su Meta. <b>Ads</b> = tutte quelle viste da dicembre 2025 (la barra mostra quanto ci hanno investito rispetto agli altri); <b>Attive</b> = accese adesso.</li>
+      <li><span class="pill on">Attiva</span> = ci stanno spendendo ora · <span class="pill" style="--pc:var(--c7)">Spenta</span> = nessuna ad accesa all’ultimo controllo · <span class="pill new">+N oggi</span> = ads accese oggi.</li>
+      <li><b>Clicca una riga</b>: si apre la scheda con landing, upsell, downsell e le ads nella Libreria Meta.</li></ul></div>
     <div class="card"><h2><span class="ico" style="--a:var(--c0)">📦</span>Prodotti con ads su Meta</h2>
       <p class="note">Clicca una riga per aprire landing, upsell, downsell e ads. “Attive” è il dato dell’ultimo controllo.</p>
       <div class="tools"><input id="qp" type="search" placeholder="Cerca prodotto, mercato, pagina…"><span id="fp"></span></div>
@@ -235,13 +269,23 @@ details.tech ul { margin:10px 0 0; padding-left:18px; font-size:13.5px; display:
 
   <section class="page" id="timeline" hidden>
     <div class="card"><h2><span class="ico" style="--a:var(--c2)">🗓️</span>Quando hanno fatto girare le ads</h2>
-      <p class="note">Barra = dalla prima all’ultima ad. Punti = giorni in cui hanno avviato nuove ads (più grandi = più ads). ◆ = data del certificato SSL. Passa sopra per i dettagli, clicca per aprire.</p>
-      <div class="tools"><span id="gs"></span><span id="gz"></span>
-        <span class="legend"><span><span class="sw" style="background:var(--c0)"></span>Ads attive</span><span><span class="sw" style="background:var(--c7)"></span>Spente</span><span>◆ certificato</span></span></div>
+      <div class="help" style="margin:10px 0 14px"><b>Legenda</b>
+        <div><span class="lg"><span class="dia"></span><b>Pagina messa online</b></span> data del certificato https del sottodominio: vuol dire che la landing esiste, <b>non</b> che è stata lanciata. Per i sottodomini vecchi può essere solo un rinnovo (avviene ogni ~3 mesi).</div>
+        <div><span class="lg"><span class="bar" style="background:var(--c0);opacity:.5"></span><b>Periodo con ads</b></span> dalla prima all’ultima ad vista: questo è il <b>lancio vero</b>. Verde = ads ancora accese, grigio = spente.</div>
+        <div><span class="lg"><span class="dot" style="background:var(--c0)"></span><b>Giorno con ads nuove</b></span> più è grande il pallino, più ads hanno acceso quel giorno (= spinta).</div>
+        <div><b>Solo ◆ senza barra</b> = landing pronta ma mai pubblicizzata (“nel cassetto”). Passa sopra una riga per i dettagli, clicca per aprirla.</div></div>
+      <div class="tools"><span id="gs"></span><span id="gz"></span></div>
       <div class="gantt" id="gantt"></div></div>
   </section>
 
   <section class="page" id="sottodomini" hidden>
+    <div class="help"><b>Cosa sono i tipi</b>
+      <ul><li><span class="pill" style="--pc:var(--c0)">Landing con ads</span> pagina di vendita che hanno pubblicizzato su Meta.</li>
+      <li><span class="pill" style="--pc:var(--c6)">Landing</span> pagina di vendita mai vista in ads: nel cassetto, in preparazione o abbandonata.</li>
+      <li><span class="pill" style="--pc:var(--c2)">Upsell/downsell</span> pagine dopo l’acquisto (nomi che finiscono con 101, 17, 85…): <b>101</b> = upsell, <b>17</b> = downsell.</li>
+      <li><span class="pill" style="--pc:var(--c5)">Thank-you page</span> pagina di ringraziamento in una lingua: dice in quali mercati vendono.</li>
+      <li><span class="pill" style="--pc:var(--c7)">Infrastruttura/test</span> sistemi interni (automazioni, storage, pannello, test del builder di landing).</li></ul>
+      <div>“Certificato” = data in cui la pagina è stata messa online (o rinnovata). “Cos’è”: le descrizioni con “(dal nome)” sono deduzioni.</div></div>
     <div class="card"><h2><span class="ico" style="--a:var(--c4)">🌐</span>Tutti i sottodomini di cantinhodetudo.online</h2>
       <p class="note">Dai certificati SSL e dal DNS, aggiornati ogni mattina. Clicca un nome per aprire il sito.</p>
       <div class="tools"><input id="qs" type="search" placeholder="Cerca sottodominio, descrizione, prezzo…"></div>
@@ -398,6 +442,34 @@ function drawReport() {
   if (x.analysis) box.append(h('div', { class: 'setup' }, x.analysis));
 }
 
+/* ---------- cosa testare ---------- */
+function daysBetween(a, b) { return Math.round((Date.parse(b || today()) - Date.parse(a)) / 864e5); }
+function testItem(sub, sig, sigTxt, line) {
+  return h('a', { class: 'mini', href: '#', onclick: function (e) { e.preventDefault(); SEL = sub; show('prodotti'); } },
+    h('span', { class: 't' }, h('b', {}, titleOf(sub)), h('span', {}, line)), h('span', { class: 'sig ' + sig }, sigTxt));
+}
+function drawTest() {
+  var g = $('#testgrid'); g.replaceChildren();
+  var strong = ROWS.filter(function (r) { return r.active > 0 && daysBetween(r.first) >= 5; }).sort(function (a, b) { return b.active - a.active; });
+  var fresh = ROWS.filter(function (r) { return r.active > 0 && daysBetween(r.first) < 5; }).sort(function (a, b) { return b.active - a.active; });
+  var worked = ROWS.filter(function (r) { return r.active === 0 && r.last && daysBetween(r.first, r.last) > 21; }).sort(function (a, b) { return b.ads - a.ads; });
+  var flop = ROWS.filter(function (r) { return r.active === 0 && r.last && daysBetween(r.first, r.last) <= 7; }).sort(function (a, b) { return b.ads - a.ads; });
+  var drawer = SUBS.filter(function (s) { return s.type === 'Landing'; });
+  function mk(r) { return (r.mk ? r.mk + ' · ' : ''); }
+  g.append(
+    col('ok', '✅ Testa per primi', strong.length, 'Ads accese da almeno 5 giorni: vendono. Ordinati per ads attive.',
+      strong.map(function (r) { return testItem(r.sub, 's3', r.active + ' attive', mk(r) + 'in ads da ' + daysBetween(r.first) + ' giorni · ' + r.ads + ' ads totali'); }), 'Nessuno al momento.'),
+    col('c2', '👀 Da osservare', fresh.length + worked.length, 'Appena lanciati (non ancora validati) e nicchie che hanno funzionato a lungo prima di essere spente.',
+      fresh.map(function (r) { return testItem(r.sub, 's2', 'nuovo', mk(r) + 'lanciato ' + fmt(r.first) + ' · ' + r.active + ' attive'); })
+        .concat(worked.map(function (r) { return testItem(r.sub, 's2', 'ha funzionato', mk(r) + daysBetween(r.first, r.last) + ' giorni di ads · ' + r.ads + ' ads'); })), 'Niente da osservare.'),
+    col('c7', '🚫 Evita o studia', flop.length, 'Accesi e spenti entro una settimana: il loro test non è andato.',
+      flop.map(function (r) { return testItem(r.sub, 's1', 'flop', mk(r) + daysBetween(r.first, r.last) + ' giorni di ads · ' + r.ads + ' ads'); }), 'Nessun flop.'));
+  g.append(h('div', { class: 'col', style: '--pc:var(--c4);grid-column:1/-1' },
+    h('h3', {}, '🗄️ Nel cassetto: landing pronte, mai pubblicizzate', h('span', { class: 'big' }, String(drawer.length))),
+    h('div', { class: 'hint' }, 'Pagine di vendita che esistono ma senza ads trovate. Dicono quali nicchie stanno preparando o hanno scartato. Clicca per aprire la pagina.'),
+    h('div', { class: 'cols3' }, drawer.map(function (s) { return h('a', { class: 'mini', href: url(s.sub) }, h('span', { class: 't' }, h('b', {}, s.sub), h('span', {}, s.desc || 'Nessuna descrizione')), h('span', { class: 'sig s1' }, s.cert ? fmt(s.cert) : 'DNS')); }))));
+}
+
 /* ---------- tabelle ---------- */
 function table(id, cols, rows, s, render, onrow) {
   var k = s.k;
@@ -476,13 +548,14 @@ function drawSubs() {
 /* ---------- timeline ---------- */
 function sv(tag, a) { var e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (var k in a) e.setAttribute(k, a[k]); return e; }
 function drawGantt() {
-  $('#gs').replaceChildren.apply($('#gs'), [['ads', 'Solo con ads'], ['prodotti', 'Tutti i prodotti'], ['tutto', 'Tutto']].map(function (o) { return h('button', { class: 'chip', 'aria-pressed': String(st.g.scope === o[0]), onclick: function () { st.g.scope = o[0]; drawGantt(); } }, o[1]); }));
+  $('#gs').replaceChildren.apply($('#gs'), [['ads', 'Solo prodotti lanciati'], ['cassetto', 'Solo landing mai lanciate'], ['prodotti', 'Tutte le pagine'], ['tutto', 'Tutto, anche tecnico']].map(function (o) { return h('button', { class: 'chip', 'aria-pressed': String(st.g.scope === o[0]), onclick: function () { st.g.scope = o[0]; drawGantt(); } }, o[1]); }));
   $('#gz').replaceChildren(h('button', { class: 'chip', 'aria-pressed': String(st.g.zoom), onclick: function () { st.g.zoom = !st.g.zoom; drawGantt(); } }, st.g.zoom ? 'Da giugno 2026' : 'Da dicembre 2025'));
   var box = $('#gantt'); box.replaceChildren();
   if (PAGE !== 'timeline') return;
   var cert = {}; SUBS.forEach(function (s) { cert[s.sub] = s; });
   var rows = ROWS.map(function (r) { return { name: r.sub, r: r, s: cert[r.sub], d: r.first }; });
-  if (st.g.scope !== 'ads') SUBS.forEach(function (s) { if (s.type !== 'Landing con ads' && (st.g.scope === 'tutto' || (s.type !== 'Infrastruttura/test' && s.type !== 'Thank-you page'))) rows.push({ name: s.sub, r: null, s: s, d: s.cert || '9999' }); });
+  if (st.g.scope === 'cassetto') rows = [];
+  if (st.g.scope !== 'ads') SUBS.forEach(function (s) { if (s.type !== 'Landing con ads' && (st.g.scope === 'tutto' || (st.g.scope === 'cassetto' ? s.type === 'Landing' : (s.type !== 'Infrastruttura/test' && s.type !== 'Thank-you page')))) rows.push({ name: s.sub, r: null, s: s, d: s.cert || '9999' }); });
   rows.sort(function (a, b) { return a.d.localeCompare(b.d); });
   var dots = {};
   for (var p in S.g) S.g[p].forEach(function (g) { (dots[p] = dots[p] || {})['20' + g[0]] = g[1]; });
@@ -530,14 +603,14 @@ function drawGantt() {
 function show(p) {
   PAGE = p;
   document.querySelectorAll('#tabs button').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.p === p)); });
-  document.querySelectorAll('.page').forEach(function (s) { s.hidden = s.id !== p; });
+  document.querySelectorAll('.page').forEach(function (s) { s.hidden = !(s.id === p || (p === 'analisi' && s.id === 'funnel')); });
   history.replaceState(null, '', '#' + p);
   drawAll();
 }
 document.querySelectorAll('#tabs button').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.p); }); });
 ['#qp', '#qa', '#qs'].forEach(function (id) { $(id).addEventListener('input', drawAll); });
 addEventListener('resize', function () { if (PAGE === 'timeline') drawGantt(); });
-function drawAll() { kpis(); drawDays(); drawReport(); drawProducts(); drawAds(); drawSubs(); drawGantt(); }
+function drawAll() { kpis(); drawTest(); drawDays(); drawReport(); drawProducts(); drawAds(); drawSubs(); drawGantt(); }
 
 async function load() {
   try { var a = await fetch('data/latest.json', { cache: 'no-store' }); if (a.ok) L = await a.json(); } catch (e) {}
@@ -545,7 +618,7 @@ async function load() {
   DAY = H.length ? H[H.length - 1].date : null;
   merge();
   var hp = location.hash.slice(1);
-  show(['novita', 'analisi', 'prodotti', 'timeline', 'sottodomini', 'funnel'].indexOf(hp) >= 0 ? hp : 'novita');
+  show(['novita', 'testare', 'analisi', 'prodotti', 'timeline', 'sottodomini', 'funnel'].indexOf(hp) >= 0 ? hp : 'novita');
 }
 load();
 })();
