@@ -100,6 +100,26 @@ def fetch_subdomains():
 PRICE_RE = re.compile(r"(?:US\$|R\$|\$|€|£)\s?\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s?(?:€|lei|RON)")
 
 
+ONE_TIME_RE = re.compile(r"pagamento unico|pagamento único|pago único|pago unico|one-time|one time payment|single payment|paiement unique|plat[ăa] unic[ăa]|einmalzahlung|pagamento singolo", re.I)
+
+
+def real_prices(text):
+    """Solo i prezzi di vendita veri: la cifra subito prima di 'Pagamento unico' (e traduzioni).
+    Esclude prezzo barrato, 'risparmi', valore dei bonus e '+4 €'."""
+    prices = list(PRICE_RE.finditer(text))
+    out = []
+    for k in ONE_TIME_RE.finditer(text):
+        best = None
+        for m in prices:
+            if m.end() <= k.start() and k.start() - m.end() < 45:
+                best = m
+        if best:
+            p = best.group(0).replace(" ", "")
+            if p not in out:
+                out.append(p)
+    return out[:4]
+
+
 def scan(sub):
     r = get("https://" + full(sub) + "/", timeout=20)
     if r is None:
@@ -113,6 +133,7 @@ def scan(sub):
         "title": (t.group(1).strip() if t else "")[:160],
         "prices": sorted(set(p.replace(" ", "") for p in PRICE_RE.findall(text)))[:20],
         "hotmart": sorted(set(re.findall(r"pay\.hotmart\.com/([A-Z0-9]{8,14})", html))),
+        "real": real_prices(text),
         "hash": hashlib.sha1(text[:20000].encode()).hexdigest()[:12],
     }
 
@@ -238,7 +259,7 @@ def diff(prev, cur):
     for s in sorted(set(cs) - set(ps)):
         l = cur["landings"].get(s, {})
         ch["nuovi_sottodomini"].append({"label": s + " · " + classify(s) + (" · " + l["title"] if l.get("title") else ""),
-                                        "sub": s, "prices": l.get("prices", [])})
+                                        "sub": s, "prices": l.get("real") or []})
     for s in sorted(set(ps) - set(cs)):
         ch["sottodomini_spariti"].append({"label": s})
     pl, cl = prev.get("landings", {}), cur["landings"]
@@ -246,9 +267,9 @@ def diff(prev, cur):
         o = pl.get(s)
         if not o or s not in ps:
             continue
-        if o.get("prices") != l.get("prices"):
-            ch["prezzi_cambiati"].append({"label": s + ": " + " ".join(o.get("prices") or []) + " → " +
-                                          " ".join(l.get("prices") or []), "sub": s})
+        if o.get("real") is not None and l.get("real") and o.get("real") != l.get("real"):
+            ch["prezzi_cambiati"].append({"label": s + ": " + " / ".join(o.get("real") or []) + " → " +
+                                          " / ".join(l.get("real") or []), "sub": s})
         if o.get("hotmart") != l.get("hotmart"):
             ch["checkout_cambiati"].append({"label": s + ": checkout Hotmart cambiato", "sub": s})
         if o.get("title") != l.get("title"):
@@ -317,7 +338,7 @@ def main():
     latest = {"date": TODAY, "domain": DOMAIN, "totals": totals, "products": products(allads),
               "subdomains": [{"sub": s, "type": classify(s), "cert": d, **{k: landings.get(s, {}).get(k, "")
                               for k in ("title", "status")}, "prices": landings.get(s, {}).get("prices", []),
-                              "hotmart": landings.get(s, {}).get("hotmart", [])} for s, d in sorted(subs.items())],
+                              "hotmart": landings.get(s, {}).get("hotmart", []), "real": landings.get(s, {}).get("real", [])} for s, d in sorted(subs.items())],
               "ads": sorted(allads.values(), key=lambda a: a["start"], reverse=True)}
     for s in latest["subdomains"]:
         s["http"] = s.pop("status")
